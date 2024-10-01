@@ -1,5 +1,5 @@
 target=$(cd $(dirname $0); pwd)
-image="snltty/linker"
+image="linwei5d/linker"
 
 
 fs=('linker')
