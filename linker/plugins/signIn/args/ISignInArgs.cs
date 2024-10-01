@@ -57,7 +57,7 @@ namespace linker.plugins.signIn.args
             if (string.IsNullOrWhiteSpace(cpu) || cpu.Contains("No such file or directory"))
             {
                 LoggerHelper.Instance.Error(cpu);
-                return $"0baa4ef2-4d33-ceda-6db2-f1bafb38a87a↓root↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+                return $"2baa4ef2-4d33-ceda-6db2-f1bafb38a87a↓root↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
             }
             string username = CommandHelper.Linux(string.Empty, ["whoami"]).TrimNewLineAndWhiteSapce();
             return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
