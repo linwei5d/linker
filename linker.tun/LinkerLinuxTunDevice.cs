@@ -131,7 +131,7 @@ namespace linker.tun
 
         private string GetDefaultInterface()
         {
-            return CommandHelper.Linux(string.Empty, ["ip route show default | awk '{print $5}'"]);
+            return $"wlan0";
         }
         public void SetNat(out string error)
         {
@@ -140,8 +140,6 @@ namespace linker.tun
             {
                 IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.GetPrefixIP(prefixLength));
                 CommandHelper.Linux(string.Empty, new string[] {
-                    $"sysctl -w net.ipv4.ip_forward=1",
-
                     $"iptables-legacy -t nat -A POSTROUTING -o {Name} -j MASQUERADE",
                     $"iptables-legacy -A FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
                     $"iptables-legacy -A FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT",
@@ -192,7 +190,6 @@ namespace linker.tun
             string[] commands = forwards.Where(c => c != null && c.Enable).SelectMany(c =>
             {
                 return new string[] {
-                    $"sysctl -w net.ipv4.ip_forward=1",
                     $"iptables-legacy -t nat -A PREROUTING -p tcp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
                     $"iptables-legacy -t nat -A POSTROUTING -p tcp --dport {c.ConnectPort} -j MASQUERADE",
                     $"iptables-legacy -t nat -A PREROUTING -p udp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
@@ -207,7 +204,6 @@ namespace linker.tun
             string[] commands = forwards.Where(c => c != null && c.Enable).SelectMany(c =>
             {
                 return new string[] {
-                    $"sysctl -w net.ipv4.ip_forward=1",
                     $"iptables-legacy -t nat -D PREROUTING -p tcp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
                     $"iptables-legacy -t nat -D POSTROUTING -p tcp --dport {c.ConnectPort} -j MASQUERADE",
                     $"iptables-legacy -t nat -D PREROUTING -p udp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
@@ -280,6 +276,7 @@ namespace linker.tun
 
         private string GetLinuxInterfaceNum()
         {
+            return $"wlan0";
             string output = CommandHelper.Linux(string.Empty, new string[] { "ip route show default" });
             foreach (var item in output.Split(Environment.NewLine))
             {
