@@ -142,13 +142,13 @@ namespace linker.tun
                 CommandHelper.Linux(string.Empty, new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
 
-                    $"iptables -t nat -A POSTROUTING -o {Name} -j MASQUERADE",
-                    $"iptables -A FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
-                    $"iptables -A FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+                    $"iptables-legacy -t nat -A POSTROUTING -o {Name} -j MASQUERADE",
+                    $"iptables-legacy -A FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
+                    $"iptables-legacy -A FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT",
 
-                    $"iptables -A FORWARD -i {Name} -j ACCEPT",
-                    $"iptables -A FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT",
-                    $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
+                    $"iptables-legacy -A FORWARD -i {Name} -j ACCEPT",
+                    $"iptables-legacy -A FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+                    $"iptables-legacy -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
                 });
             }
             catch (Exception ex)
@@ -162,21 +162,21 @@ namespace linker.tun
             try
             {
                 CommandHelper.Linux(string.Empty, new string[] {
-                    $"iptables -t nat -D POSTROUTING -o {Name} -j MASQUERADE",
-                    $"iptables -D FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
-                    $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+                    $"iptables-legacy -t nat -D POSTROUTING -o {Name} -j MASQUERADE",
+                    $"iptables-legacy -D FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
+                    $"iptables-legacy -D FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT",
 
-                    $"iptables -D FORWARD -i {Name} -j ACCEPT",
-                    $"iptables -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
+                    $"iptables-legacy -D FORWARD -i {Name} -j ACCEPT",
+                    $"iptables-legacy -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
                 });
 
                 IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.GetPrefixIP(prefixLength));
-                string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
+                string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables-legacy -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
                 if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
                 {
                     string[] commands = iptableLineNumbers.Split(Environment.NewLine)
                         .Where(c => string.IsNullOrWhiteSpace(c) == false)
-                        .Select(c => $"iptables -t nat -D POSTROUTING {c}").ToArray();
+                        .Select(c => $"iptables-legacy -t nat -D POSTROUTING {c}").ToArray();
                     CommandHelper.Linux(string.Empty, commands);
                 }
             }
@@ -193,10 +193,10 @@ namespace linker.tun
             {
                 return new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
-                    $"iptables -t nat -A PREROUTING -p tcp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
-                    $"iptables -t nat -A POSTROUTING -p tcp --dport {c.ConnectPort} -j MASQUERADE",
-                    $"iptables -t nat -A PREROUTING -p udp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
-                    $"iptables -t nat -A POSTROUTING -p udp --dport {c.ConnectPort} -j MASQUERADE",
+                    $"iptables-legacy -t nat -A PREROUTING -p tcp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
+                    $"iptables-legacy -t nat -A POSTROUTING -p tcp --dport {c.ConnectPort} -j MASQUERADE",
+                    $"iptables-legacy -t nat -A PREROUTING -p udp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
+                    $"iptables-legacy -t nat -A POSTROUTING -p udp --dport {c.ConnectPort} -j MASQUERADE",
                 };
 
             }).ToArray();
@@ -208,10 +208,10 @@ namespace linker.tun
             {
                 return new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
-                    $"iptables -t nat -D PREROUTING -p tcp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
-                    $"iptables -t nat -D POSTROUTING -p tcp --dport {c.ConnectPort} -j MASQUERADE",
-                    $"iptables -t nat -D PREROUTING -p udp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
-                    $"iptables -t nat -D POSTROUTING -p udp --dport {c.ConnectPort} -j MASQUERADE"
+                    $"iptables-legacy -t nat -D PREROUTING -p tcp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
+                    $"iptables-legacy -t nat -D POSTROUTING -p tcp --dport {c.ConnectPort} -j MASQUERADE",
+                    $"iptables-legacy -t nat -D PREROUTING -p udp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
+                    $"iptables-legacy -t nat -D POSTROUTING -p udp --dport {c.ConnectPort} -j MASQUERADE"
                 };
 
             }).ToArray();
